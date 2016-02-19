@@ -74,8 +74,8 @@ Gem::Specification.new do |spec|
   spec.name          = "${project.name}"
   spec.version       = "${project.version}"
   spec.authors       = ["sonots"]
-  spec.summary       = %[An Embulk formatter plugin to output values of a single column]
-  spec.description   = %[An Embulk formatter plugin to output values of a single column.]
+  spec.summary       = %[Embulk formatter plugin to output values of a single column]
+  spec.description   = %[Embulk formatter plugin to output values of a single column.]
   spec.email         = ["sonots@gmail.com"]
   spec.licenses      = ["MIT"]
   spec.homepage      = "https://github.com/sonots/embulk-formatter-single_value"
