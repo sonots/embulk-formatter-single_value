@@ -1,0 +1,17 @@
+in:
+  type: file
+  path_prefix: example/timestamp.txt
+  parser:
+    type: csv
+    skip_header_lines: 0
+    columns:
+      - {name: time, type: timestamp, format: '%Y-%m-%d %H:%M:%S', timezone: "Asia/Tokyo"}
+out:
+  type: file
+  path_prefix: /tmp/signle_value_
+  file_ext: txt
+  formatter:
+    type: single_value
+    null_string: ""
+    timestamp_format: "%Y-%m-%d %H:%M:%S %z"
+    timezone: "Asia/Tokyo"

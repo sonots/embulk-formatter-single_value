@@ -1,0 +1,13 @@
+in:
+  type: file
+  path_prefix: example/example.txt
+  parser:
+    type: none
+    message_key: message
+out:
+  type: file
+  path_prefix: /tmp/signle_value_
+  file_ext: txt
+  formatter:
+    type: single_value
+    null_string: ""
