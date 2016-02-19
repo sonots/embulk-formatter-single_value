@@ -1,6 +1,6 @@
-# An Embulk formatter plugin to output values of a single row
+# An Embulk formatter plugin to output values of a single column
 
-An Embulk formatter plugin to output values of a single row. This is a kind of reverse of [embulk-parser-none](https://github.com/sonots/embulk-parser-none)
+An Embulk formatter plugin to output values of a single column. This is a kind of reverse of [embulk-parser-none](https://github.com/sonots/embulk-parser-none)
 
 ## Overview
 
