@@ -73,7 +73,7 @@ task gemspec {
 Gem::Specification.new do |spec|
   spec.name          = "${project.name}"
   spec.version       = "${project.version}"
-  spec.authors       = ["sonots"]
+  spec.authors       = ["Naotoshi Seo"]
   spec.summary       = %[Embulk formatter plugin to output values of a single column]
   spec.description   = %[Embulk formatter plugin to output values of a single column.]
   spec.email         = ["sonots@gmail.com"]
