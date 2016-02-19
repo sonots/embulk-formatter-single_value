@@ -8,7 +8,7 @@ in:
       - {name: time, type: timestamp, format: '%Y-%m-%d %H:%M:%S', timezone: "Asia/Tokyo"}
 out:
   type: file
-  path_prefix: /tmp/signle_value_
+  path_prefix: /tmp/single_value_
   file_ext: txt
   formatter:
     type: single_value
