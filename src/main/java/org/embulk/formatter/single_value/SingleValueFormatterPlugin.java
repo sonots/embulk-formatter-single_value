@@ -57,29 +57,32 @@ public class SingleValueFormatterPlugin
         control.run(task.dump());
     }
 
-    private Schema getOutputSchema(Optional<String> columnName, Schema inputSchema)
+    private int getInputColumnIndex(Optional<String> columnName, Schema inputSchema)
     {
-        Column outputColumn;
         if (columnName.isPresent()) {
-            outputColumn = inputSchema.lookupColumn(columnName.get());
+            return inputSchema.lookupColumn(columnName.get()).getIndex();
         }
-        else {
-            outputColumn = inputSchema.getColumn(0);
-        }
+        return 0; // default is the first column
+    }
+
+    private Schema getOutputSchema(int inputColumnIndex, Schema inputSchema)
+    {
+        Column outputColumn = inputSchema.getColumn(inputColumnIndex);
         ImmutableList.Builder<Column> builder = ImmutableList.builder();
         builder.add(outputColumn);
         return new Schema(builder.build());
     }
 
     @Override
-    public PageOutput open(final TaskSource taskSource, final Schema schema,
+    public PageOutput open(final TaskSource taskSource, final Schema inputSchema,
             final FileOutput output)
     {
         final PluginTask task = taskSource.loadTask(PluginTask.class);
         final LineEncoder encoder = new LineEncoder(output, task);
         final String nullString = task.getNullString();
 
-        final Schema outputSchema = getOutputSchema(task.getMessageKey(), schema);
+        final int inputColumnIndex = getInputColumnIndex(task.getMessageKey(), inputSchema);
+        final Schema outputSchema = getOutputSchema(inputColumnIndex, inputSchema);
         final DateTimeZone timezone  = DateTimeZone.forID(task.getTimezone());
         final TimestampFormatter timestampFormatter =
             new TimestampFormatter(task.getJRuby(), task.getTimestampFormat(), timezone);
@@ -88,17 +91,17 @@ public class SingleValueFormatterPlugin
         encoder.nextFile();
 
         return new PageOutput() {
-            private final PageReader pageReader = new PageReader(outputSchema);
+            private final PageReader pageReader = new PageReader(inputSchema);
 
             public void add(Page page)
             {
                 pageReader.setPage(page);
                 while (pageReader.nextRecord()) {
-                    schema.visitColumns(new ColumnVisitor() {
+                    outputSchema.visitColumns(new ColumnVisitor() {
                         public void booleanColumn(Column column)
                         {
-                            if (!pageReader.isNull(column)) {
-                                addValue(Boolean.toString(pageReader.getBoolean(column)));
+                            if (!pageReader.isNull(inputColumnIndex)) {
+                                addValue(Boolean.toString(pageReader.getBoolean(inputColumnIndex)));
                             }
                             else {
                                 addNullString();
@@ -107,8 +110,8 @@ public class SingleValueFormatterPlugin
 
                         public void longColumn(Column column)
                         {
-                            if (!pageReader.isNull(column)) {
-                                addValue(Long.toString(pageReader.getLong(column)));
+                            if (!pageReader.isNull(inputColumnIndex)) {
+                                addValue(Long.toString(pageReader.getLong(inputColumnIndex)));
                             }
                             else {
                                 addNullString();
@@ -117,8 +120,8 @@ public class SingleValueFormatterPlugin
 
                         public void doubleColumn(Column column)
                         {
-                            if (!pageReader.isNull(column)) {
-                                addValue(Double.toString(pageReader.getDouble(column)));
+                            if (!pageReader.isNull(inputColumnIndex)) {
+                                addValue(Double.toString(pageReader.getDouble(inputColumnIndex)));
                             }
                             else {
                                 addNullString();
@@ -127,8 +130,8 @@ public class SingleValueFormatterPlugin
 
                         public void stringColumn(Column column)
                         {
-                            if (!pageReader.isNull(column)) {
-                                addValue(pageReader.getString(column));
+                            if (!pageReader.isNull(inputColumnIndex)) {
+                                addValue(pageReader.getString(inputColumnIndex));
                             }
                             else {
                                 addNullString();
@@ -137,8 +140,8 @@ public class SingleValueFormatterPlugin
 
                         public void timestampColumn(Column column)
                         {
-                            if (!pageReader.isNull(column)) {
-                                Timestamp value = pageReader.getTimestamp(column);
+                            if (!pageReader.isNull(inputColumnIndex)) {
+                                Timestamp value = pageReader.getTimestamp(inputColumnIndex);
                                 addValue(timestampFormatter.format(value));
                             }
                             else {
@@ -148,8 +151,8 @@ public class SingleValueFormatterPlugin
 
                         public void jsonColumn(Column column)
                         {
-                            if (!pageReader.isNull(column)) {
-                                Value value = pageReader.getJson(column);
+                            if (!pageReader.isNull(inputColumnIndex)) {
+                                Value value = pageReader.getJson(inputColumnIndex);
                                 addValue(value.toJson());
                             }
                             else {
