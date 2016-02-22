@@ -24,4 +24,4 @@ out:
   file_ext: txt
   formatter:
     type: single_value
-    message_key: comment
+    column_name: comment

@@ -3,7 +3,6 @@ in:
   path_prefix: example/example.txt
   parser:
     type: none
-    message_key: message
 out:
   type: file
   path_prefix: /tmp/single_value_

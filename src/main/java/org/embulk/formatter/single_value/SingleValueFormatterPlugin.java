@@ -31,9 +31,9 @@ public class SingleValueFormatterPlugin
     public interface PluginTask
             extends Task, LineEncoder.EncoderTask, TimestampFormatter.Task
     {
-        @Config("message_key")
+        @Config("column_name")
         @ConfigDefault("null")
-        public Optional<String> getMessageKey();
+        public Optional<String> getColumnName();
 
         @Config("null_string")
         @ConfigDefault("\"\"")
@@ -81,7 +81,7 @@ public class SingleValueFormatterPlugin
         final LineEncoder encoder = new LineEncoder(output, task);
         final String nullString = task.getNullString();
 
-        final int inputColumnIndex = getInputColumnIndex(task.getMessageKey(), inputSchema);
+        final int inputColumnIndex = getInputColumnIndex(task.getColumnName(), inputSchema);
         final Schema outputSchema = getOutputSchema(inputColumnIndex, inputSchema);
         final DateTimeZone timezone  = DateTimeZone.forID(task.getTimezone());
         final TimestampFormatter timestampFormatter =
