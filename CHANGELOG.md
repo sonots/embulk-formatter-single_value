@@ -1,3 +1,9 @@
+# 0.2.0 (2016-02-22)
+
+Changes:
+
+* Rename message\_key option to column\_name option
+
 # 0.1.2 (2016-02-20)
 
 Fixes:
