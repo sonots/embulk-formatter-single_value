@@ -13,14 +13,14 @@ configurations {
     provided
 }
 
-version = "0.2.0"
+version = "0.3.0"
 
 sourceCompatibility = 1.7
 targetCompatibility = 1.7
 
 dependencies {
-    compile  "org.embulk:embulk-core:0.8.29"
-    provided "org.embulk:embulk-core:0.8.29"
+    compile  "org.embulk:embulk-core:0.8.29+"
+    provided "org.embulk:embulk-core:0.8.29+"
     // compile "YOUR_JAR_DEPENDENCY_GROUP:YOUR_JAR_DEPENDENCY_MODULE:YOUR_JAR_DEPENDENCY_VERSION"
     testCompile "junit:junit:4.+"
 }
