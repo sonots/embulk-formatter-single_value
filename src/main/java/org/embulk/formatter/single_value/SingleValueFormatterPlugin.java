@@ -85,7 +85,7 @@ public class SingleValueFormatterPlugin
         final Schema outputSchema = getOutputSchema(inputColumnIndex, inputSchema);
         final DateTimeZone timezone  = DateTimeZone.forID(task.getTimezone());
         final TimestampFormatter timestampFormatter =
-            new TimestampFormatter(task.getJRuby(), task.getTimestampFormat(), timezone);
+            new TimestampFormatter(task.getTimestampFormat(), timezone);
 
         // create a file
         encoder.nextFile();
