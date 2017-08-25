@@ -23,6 +23,7 @@ import org.embulk.spi.time.TimestampFormatter;
 import org.embulk.spi.util.LineEncoder;
 
 import org.joda.time.DateTimeZone;
+import org.jruby.embed.ScriptingContainer;
 import org.msgpack.value.Value;
 
 public class SingleValueFormatterPlugin
@@ -85,7 +86,7 @@ public class SingleValueFormatterPlugin
         final Schema outputSchema = getOutputSchema(inputColumnIndex, inputSchema);
         final DateTimeZone timezone  = DateTimeZone.forID(task.getTimezone());
         final TimestampFormatter timestampFormatter =
-            new TimestampFormatter(task.getTimestampFormat(), timezone);
+            getTimestampFormatter(task.getTimestampFormat(), timezone);
 
         // create a file
         encoder.nextFile();
@@ -184,5 +185,69 @@ public class SingleValueFormatterPlugin
                 encoder.close();
             }
         };
+    }
+
+
+    private class TimestampFormatterTaskImpl implements TimestampFormatter.Task
+    {
+        private final DateTimeZone defaultTimeZone;
+        private final String defaultTimestampFormat;
+        public TimestampFormatterTaskImpl(
+                DateTimeZone defaultTimeZone,
+                String defaultTimestampFormat)
+        {
+            this.defaultTimeZone = defaultTimeZone;
+            this.defaultTimestampFormat = defaultTimestampFormat;
+        }
+        @Override
+        public DateTimeZone getDefaultTimeZone()
+        {
+            return this.defaultTimeZone;
+        }
+        @Override
+        public String getDefaultTimestampFormat()
+        {
+            return this.defaultTimestampFormat;
+        }
+        @Override
+        public ScriptingContainer getJRuby()
+        {
+            return null;
+        }
+    }
+
+    private class TimestampFormatterColumnOptionImpl implements TimestampFormatter.TimestampColumnOption
+    {
+        private final Optional<DateTimeZone> timeZone;
+        private final Optional<String> format;
+        public TimestampFormatterColumnOptionImpl(
+                Optional<DateTimeZone> timeZone,
+                Optional<String> format)
+        {
+            this.timeZone = timeZone;
+            this.format = format;
+        }
+        @Override
+        public Optional<DateTimeZone> getTimeZone()
+        {
+            return this.timeZone;
+        }
+        @Override
+        public Optional<String> getFormat()
+        {
+            return this.format;
+        }
+    }
+
+    private TimestampFormatter getTimestampFormatter(String format, DateTimeZone timezone)
+    {
+        // ToDo: Use following codes after deciding to drop supporting embulk < 0.8.29.
+        //
+        //     return new TimestampFormatter(format, timezone);
+        TimestampFormatterTaskImpl task = new TimestampFormatterTaskImpl(
+                timezone, format);
+        TimestampFormatterColumnOptionImpl columnOption = new TimestampFormatterColumnOptionImpl(
+                Optional.of(timezone), Optional.of(format));
+        return new TimestampFormatter(task, Optional.of(columnOption));
     }
 }
