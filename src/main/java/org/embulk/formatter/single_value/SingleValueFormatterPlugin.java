@@ -86,7 +86,7 @@ public class SingleValueFormatterPlugin
         final Schema outputSchema = getOutputSchema(inputColumnIndex, inputSchema);
         final DateTimeZone timezone  = DateTimeZone.forID(task.getTimezone());
         final TimestampFormatter timestampFormatter =
-            getTimestampFormatter(task.getTimestampFormat(), timezone);
+            createTimestampFormatter(task.getTimestampFormat(), timezone);
 
         // create a file
         encoder.nextFile();
@@ -239,13 +239,11 @@ public class SingleValueFormatterPlugin
         }
     }
 
-    private TimestampFormatter getTimestampFormatter(String format, DateTimeZone timezone)
+    // ToDo: Replace with `new TimestampFormatter(format, timezone)`
+    // after deciding to drop supporting embulk < 0.8.29.
+    private TimestampFormatter createTimestampFormatter(String format, DateTimeZone timezone)
     {
-        // ToDo: Use following codes after deciding to drop supporting embulk < 0.8.29.
-        //
-        //     return new TimestampFormatter(format, timezone);
-        TimestampFormatterTaskImpl task = new TimestampFormatterTaskImpl(
-                timezone, format);
+        TimestampFormatterTaskImpl task = new TimestampFormatterTaskImpl(timezone, format);
         TimestampFormatterColumnOptionImpl columnOption = new TimestampFormatterColumnOptionImpl(
                 Optional.of(timezone), Optional.of(format));
         return new TimestampFormatter(task, Optional.of(columnOption));
