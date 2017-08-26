@@ -12,6 +12,7 @@ import org.embulk.config.TaskSource;
 
 import org.embulk.spi.Column;
 import org.embulk.spi.ColumnVisitor;
+import org.embulk.spi.Exec;
 import org.embulk.spi.FileOutput;
 import org.embulk.spi.FormatterPlugin;
 import org.embulk.spi.Page;
@@ -23,7 +24,6 @@ import org.embulk.spi.time.TimestampFormatter;
 import org.embulk.spi.util.LineEncoder;
 
 import org.joda.time.DateTimeZone;
-import org.jruby.embed.ScriptingContainer;
 import org.msgpack.value.Value;
 
 public class SingleValueFormatterPlugin
@@ -86,7 +86,7 @@ public class SingleValueFormatterPlugin
         final Schema outputSchema = getOutputSchema(inputColumnIndex, inputSchema);
         final DateTimeZone timezone  = DateTimeZone.forID(task.getTimezone());
         final TimestampFormatter timestampFormatter =
-            getTimestampFormatter(task.getTimestampFormat(), timezone);
+            createTimestampFormatter(task.getTimestampFormat(), timezone);
 
         // create a file
         encoder.nextFile();
@@ -187,67 +187,19 @@ public class SingleValueFormatterPlugin
         };
     }
 
+    private interface TimestampFormatterTaskIntl extends org.embulk.config.Task, TimestampFormatter.Task {}
+    private interface TimestampFormatterColumnOptionIntl extends org.embulk.config.Task, TimestampFormatter.TimestampColumnOption {}
 
-    private class TimestampFormatterTaskImpl implements TimestampFormatter.Task
+    // ToDo: Replace with `new TimestampFormatter(format, timezone)`
+    // after deciding to drop supporting embulk < 0.8.29.
+    private TimestampFormatter createTimestampFormatter(String format, DateTimeZone timezone)
     {
-        private final DateTimeZone defaultTimeZone;
-        private final String defaultTimestampFormat;
-        public TimestampFormatterTaskImpl(
-                DateTimeZone defaultTimeZone,
-                String defaultTimestampFormat)
-        {
-            this.defaultTimeZone = defaultTimeZone;
-            this.defaultTimestampFormat = defaultTimestampFormat;
-        }
-        @Override
-        public DateTimeZone getDefaultTimeZone()
-        {
-            return this.defaultTimeZone;
-        }
-        @Override
-        public String getDefaultTimestampFormat()
-        {
-            return this.defaultTimestampFormat;
-        }
-        @Override
-        public ScriptingContainer getJRuby()
-        {
-            return null;
-        }
-    }
-
-    private class TimestampFormatterColumnOptionImpl implements TimestampFormatter.TimestampColumnOption
-    {
-        private final Optional<DateTimeZone> timeZone;
-        private final Optional<String> format;
-        public TimestampFormatterColumnOptionImpl(
-                Optional<DateTimeZone> timeZone,
-                Optional<String> format)
-        {
-            this.timeZone = timeZone;
-            this.format = format;
-        }
-        @Override
-        public Optional<DateTimeZone> getTimeZone()
-        {
-            return this.timeZone;
-        }
-        @Override
-        public Optional<String> getFormat()
-        {
-            return this.format;
-        }
-    }
-
-    private TimestampFormatter getTimestampFormatter(String format, DateTimeZone timezone)
-    {
-        // ToDo: Use following codes after deciding to drop supporting embulk < 0.8.29.
-        //
-        //     return new TimestampFormatter(format, timezone);
-        TimestampFormatterTaskImpl task = new TimestampFormatterTaskImpl(
-                timezone, format);
-        TimestampFormatterColumnOptionImpl columnOption = new TimestampFormatterColumnOptionImpl(
-                Optional.of(timezone), Optional.of(format));
+        ConfigSource taskConfig = Exec.newConfigSource();
+        TimestampFormatterTaskIntl task = taskConfig.loadConfig(TimestampFormatterTaskIntl.class);
+        ConfigSource columnOptionConfig = Exec.newConfigSource();
+        columnOptionConfig.set("format", Optional.of(format));
+        columnOptionConfig.set("timezone", Optional.of(timezone));
+        TimestampFormatterColumnOptionIntl columnOption = columnOptionConfig.loadConfig(TimestampFormatterColumnOptionIntl.class);
         return new TimestampFormatter(task, Optional.of(columnOption));
     }
 }
